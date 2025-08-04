@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+
+<BorderPane xmlns="http://javafx.com/javafx/16" xmlns:fx="http://javafx.com/fxml/1"
+            fx:controller="com.lab.moviebrowserapplication.controllers.WatchLaterController">
+    <center>
+        <ListView fx:id="watchLaterListView"/>
+    </center>
+</BorderPane>

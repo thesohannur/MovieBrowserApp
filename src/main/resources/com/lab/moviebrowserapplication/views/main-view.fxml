@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.geometry.Insets?>
+<?import javafx.scene.control.Button?>
+<?import javafx.scene.control.ComboBox?>
+<?import javafx.scene.control.ListView?>
+<?import javafx.scene.control.MenuBar?>
+<?import javafx.scene.control.TextField?>
+<?import javafx.scene.layout.BorderPane?>
+<?import javafx.scene.layout.HBox?>
+<?import javafx.scene.layout.VBox?>
+
+<BorderPane xmlns="http://javafx.com/javafx/16" xmlns:fx="http://javafx.com/fxml/1"
+            fx:controller="com.lab.moviebrowserapplication.controllers.MainController">
+    <top>
+        <VBox spacing="10">
+            <MenuBar fx:id="menuBar"/>
+            <HBox spacing="10">
+                <padding>
+                    <Insets top="10" right="10" bottom="10" left="10" />
+                </padding>
+                <TextField fx:id="searchField" promptText="Search movies..."
+                           HBox.hgrow="ALWAYS"/>
+                <ComboBox fx:id="genreCombo" prefWidth="150"/>
+                <Button text="Watch Later" onAction="#openWatchLater"/>
+            </HBox>
+        </VBox>
+    </top>
+    <center>
+        <ListView fx:id="moviesListView" onMouseClicked="#openMovieDetails"/>
+    </center>
+</BorderPane>

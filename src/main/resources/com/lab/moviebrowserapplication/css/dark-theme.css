@@ -1,0 +1,15 @@
+.root {
+    -fx-base: #333333;
+    -fx-background: #222222;
+    -fx-control-inner-background: #444444;
+    -fx-text-fill: #f4f4f4;
+}
+
+.list-cell {
+    -fx-background-color: #444444;
+    -fx-text-fill: #f4f4f4;
+}
+
+.list-cell:filled:selected {
+    -fx-background-color: #666666;
+}

@@ -1,0 +1,13 @@
+/* Common styles for both themes */
+.label {
+    -fx-font-size: 14px;
+}
+
+.button {
+    -fx-font-weight: bold;
+    -fx-padding: 5 10;
+}
+
+.text-field {
+    -fx-pref-height: 30px;
+}
