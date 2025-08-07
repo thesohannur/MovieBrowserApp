@@ -1,90 +1,132 @@
-import java.sql.Connection;
-import java.sql.DriverManager;
-import java.sql.PreparedStatement;
-import java.sql.ResultSet;
-import java.sql.SQLException;
-import java.sql.Statement;
+package com.lab.moviebrowserapplication.models;
+
+import java.io.IOException;
+import java.io.InputStream;
+import java.sql.*;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Properties;
 
 public class DatabaseManager {
+    private static String DB_URL_NO_DB;
+    private static String DB_URL_WITH_DB;
+    private static String USER;
+    private static String PASS;
 
-    private static final String DATABASE_URL = "jdbc:sqlite:movies.db";
+    static {
+        try {
+            // Load configuration
+            Properties props = new Properties();
+            try (InputStream input = DatabaseManager.class.getClassLoader()
+                    .getResourceAsStream("config.properties")) {
+                if (input == null) {
+                    throw new RuntimeException("config.properties not found!");
+                }
+                props.load(input);
+                DB_URL_NO_DB = props.getProperty("db.url.no_db");
+                DB_URL_WITH_DB = props.getProperty("db.url.with_db");
+                USER = props.getProperty("db.user");
+                PASS = props.getProperty("db.password");
+            }
 
-    public static void initializeDatabase() {
-        try (Connection conn = DriverManager.getConnection(DATABASE_URL);
+            Class.forName("com.mysql.cj.jdbc.Driver");
+            initializeDatabase();
+        } catch (ClassNotFoundException | IOException e) {
+            e.printStackTrace();
+        }
+    }
+
+    private static void initializeDatabase() {
+        try (Connection conn = DriverManager.getConnection(DB_URL_NO_DB, USER, PASS);
              Statement stmt = conn.createStatement()) {
 
-            // Create the movies table if it doesn't exist
-            String createTableSQL = "CREATE TABLE IF NOT EXISTS movies (" +
-                    "id INTEGER PRIMARY KEY AUTOINCREMENT," +
-                    "title TEXT NOT NULL," +
-                    "director TEXT NOT NULL," +
-                    "year INTEGER NOT NULL," +
-                    "poster_url TEXT NOT NULL" +
-                    ");";
-            stmt.execute(createTableSQL);
-            System.out.println("Database and table initialized.");
+            // Create database if not exists
+            stmt.execute("CREATE DATABASE IF NOT EXISTS moviebrowser");
 
-            // Delete all existing data from the table
-            String deleteDataSQL = "DELETE FROM movies;";
-            stmt.execute(deleteDataSQL);
-            System.out.println("Existing data deleted from the movies table.");
+            try (Connection connWithDb = DriverManager.getConnection(DB_URL_WITH_DB, USER, PASS);
+                 Statement stmtWithDb = connWithDb.createStatement()) {
 
-            // Insert sample movies
-            insertSampleMovies();
+                // Create movies table
+                stmtWithDb.execute("CREATE TABLE IF NOT EXISTS movies (" +
+                        "id INT AUTO_INCREMENT PRIMARY KEY," +
+                        "title VARCHAR(255) NOT NULL," +
+                        "genre VARCHAR(255)," +
+                        "cast_members TEXT," +
+                        "duration VARCHAR(50)," +
+                        "rating DOUBLE," +
+                        "summary TEXT," +
+                        "poster_url VARCHAR(255)" +
+                        ")");
 
+                // Clear existing data before inserting new movies
+                stmtWithDb.execute("TRUNCATE TABLE movies");
+
+                insertSampleMovies(connWithDb);
+            }
         } catch (SQLException e) {
             e.printStackTrace();
         }
     }
 
-    private static void insertSampleMovies() {
-        String insertSQL = "INSERT INTO movies (title, director, year, poster_url) VALUES (?, ?, ?, ?);";
+    private static void insertSampleMovies(Connection conn) throws SQLException {
+        String[] inserts = {
+                "INSERT INTO movies (title, genre, cast_members, duration, rating, summary, poster_url) VALUES " +
+                        "('The Shawshank Redemption', 'Drama', 'Tim Robbins, Morgan Freeman', '142 min', 9.3, " +
+                        "'Two imprisoned men bond over a number of years...', '1.The Shawshank Redemption.jpg')",
 
-        try (Connection conn = DriverManager.getConnection(DATABASE_URL);
-             PreparedStatement pstmt = conn.prepareStatement(insertSQL)) {
+                "INSERT INTO movies (title, genre, cast_members, duration, rating, summary, poster_url) VALUES " +
+                        "('The Godfather', 'Crime', 'Marlon Brando, Al Pacino', '175 min', 9.2, " +
+                        "'The aging patriarch of an organized crime dynasty...', '2.The Godfather.jpg')",
 
-            List<Movie> moviesToInsert = new ArrayList<>();
-            moviesToInsert.add(new Movie("The Shawshank Redemption", "Frank Darabont", 1994, "1.The Shawshank Redemption.jpg"));
-            moviesToInsert.add(new Movie("The Godfather", "Francis Ford Coppola", 1972, "2.The Godfather.jpg"));
-            moviesToInsert.add(new Movie("The Dark Knight", "Christopher Nolan", 2008, "3.The Dark Knight.jpeg"));
-            moviesToInsert.add(new Movie("Inception", "Christopher Nolan", 2010, "4.Inception.jpeg"));
-            moviesToInsert.add(new Movie("The Matrix", "Lana Wachowski", 1999, "5.The Matrix.jpeg"));
-            moviesToInsert.add(new Movie("The Lord of the Rings: The Return of the King", "Peter Jackson", 2003, "6.The Lord of the Rings- The Return of the King.jpeg"));
-            moviesToInsert.add(new Movie("Interstellar", "Christopher Nolan", 2014, "7.Interstellar.jpeg"));
-            moviesToInsert.add(new Movie("Pulp Fiction", "Quentin Tarantino", 1994, "8.Pulp Fiction.jpg"));
-            moviesToInsert.add(new Movie("The Lion King", "Roger Allers", 1994, "9.The Lion King.jpeg"));
-            moviesToInsert.add(new Movie("Grave of the Fireflies", "Isao Takahata", 1988, "10.Grave of the Fireflies.jpeg"));
+                "INSERT INTO movies (title, genre, cast_members, duration, rating, summary, poster_url) VALUES " +
+                        "('The Dark Knight', 'Action', 'Christian Bale, Heath Ledger', '152 min', 9.0, " +
+                        "'When the menace known as the Joker emerges...', '3.The Dark Knight.jpeg')",
 
-            for (Movie movie : moviesToInsert) {
-                pstmt.setString(1, movie.getTitle());
-                pstmt.setString(2, movie.getDirector());
-                pstmt.setInt(3, movie.getYear());
-                pstmt.setString(4, movie.getPosterUrl());
-                pstmt.executeUpdate();
-            }
-            System.out.println("Sample movies inserted successfully.");
+                "INSERT INTO movies (title, genre, cast_members, duration, rating, summary, poster_url) VALUES " +
+                        "('Inception', 'Action, Science Fiction, Adventure', 'Leonardo DiCaprio, Joseph Gordon-Levitt, Ken Watanabe, Tom Hardy, Elliot Page, Cillian Murphy', '148 min', 8.7, " +
+                        "'A skilled thief who commits corporate espionage by infiltrating the subconscious of his targets is offered a chance to regain his old life as payment for a task considered to be impossible: ''inception'', the implantation of another person''s idea into a target''s subconscious.', '4.Inception.jpeg')",
 
-        } catch (SQLException e) {
-            e.printStackTrace();
+                "INSERT INTO movies (title, genre, cast_members, duration, rating, summary, poster_url) VALUES " +
+                        "('The Matrix', 'Action, Science Fiction', 'Keanu Reeves, Laurence Fishburne, Carrie-Anne Moss, Hugo Weaving', '136 min', 9.0, " +
+                        "'A computer hacker learns from mysterious rebels about the true nature of his reality and his role in the war against its controllers.', '5.The Matrix.jpeg')",
+
+                "INSERT INTO movies (title, genre, cast_members, duration, rating, summary, poster_url) VALUES " +
+                        "('The Lord of the Rings: The Return of the King', 'Epic High Fantasy, Adventure', 'Elijah Wood, Ian McKellen, Liv Tyler, Viggo Mortensen, Sean Astin, Cate Blanchett, Orlando Bloom, Andy Serkis', '201 min', 8.9, " +
+                        "'The hobbit Frodo and his friend Sam continue their journey to destroy the One Ring, while the fellowship and their allies join forces against Sauron.', '6.The Lord of the Rings- The Return of the King.jpeg')",
+
+                "INSERT INTO movies (title, genre, cast_members, duration, rating, summary, poster_url) VALUES " +
+                        "('Interstellar', 'Adventure, Drama, Sci-Fi', 'Matthew McConaughey, Anne Hathaway, Jessica Chastain, Michael Caine', '169 min', 8.7, " +
+                        "'A team of explorers travel through a wormhole in space in an attempt to ensure humanity''s survival.', '7.Interstellar.jpeg')",
+
+                "INSERT INTO movies (title, genre, cast_members, duration, rating, summary, poster_url) VALUES " +
+                        "('The Lion King', 'Animated, Musical, Drama', 'Jonathan Taylor Thomas, Matthew Broderick, James Earl Jones, Jeremy Irons, Moira Kelly, Nathan Lane, Ernie Sabella', '88 min', 8.5, " +
+                        "'A young lion prince flees his kingdom after the murder of his father and must reclaim his rightful place on the throne.', '9.The Lion King.jpeg')",
+
+                "INSERT INTO movies (title, genre, cast_members, duration, rating, summary, poster_url) VALUES " +
+                        "('Grave of the Fireflies', 'Animated, War, Drama', 'Tsutomu Tatsumi, Ayano Shiraishi, Yoshiko Shinohara, Akemi Yamaguchi', '88 min', 8.5, " +
+                        "'A young boy and his little sister struggle to survive during the final months of World War II in Japan.', '10.Grave of the Fireflies.jpeg')"
+        };
+
+        for (String sql : inserts) {
+            conn.createStatement().execute(sql);
         }
     }
 
     public static List<Movie> getAllMovies() {
         List<Movie> movies = new ArrayList<>();
-        String sql = "SELECT id, title, director, year, poster_url FROM movies;";
-
-        try (Connection conn = DriverManager.getConnection(DATABASE_URL);
+        try (Connection conn = DriverManager.getConnection(DB_URL_WITH_DB, USER, PASS);
              Statement stmt = conn.createStatement();
-             ResultSet rs = stmt.executeQuery(sql)) {
+             ResultSet rs = stmt.executeQuery("SELECT * FROM movies")) {
 
             while (rs.next()) {
                 movies.add(new Movie(
                         rs.getInt("id"),
                         rs.getString("title"),
-                        rs.getString("director"),
-                        rs.getInt("year"),
+                        rs.getString("genre"),
+                        rs.getString("cast_members"),
+                        rs.getString("duration"),
+                        rs.getDouble("rating"),
+                        rs.getString("summary"),
                         rs.getString("poster_url")
                 ));
             }

@@ -133,7 +133,7 @@ public class MainController {
                 getClass().getResource("/com/lab/moviebrowserapplication/views/watch-later.fxml"));
 
         Stage stage = new Stage();
-        stage.setScene(new Scene(loader.load()));
+        stage.setScene(new Scene(loader.load(), 500, 500));
 
         WatchLaterController controller = loader.getController();
         controller.setWatchLaterList(watchLaterList);
