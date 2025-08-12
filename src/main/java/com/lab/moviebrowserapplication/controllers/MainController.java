@@ -33,6 +33,7 @@ public class MainController {
     @FXML
     public void initialize() {
         allMovies = movieService.getAllMovies();
+        watchLaterList.addAll(DatabaseManager.getWatchLaterMovies()); // Load from DB
         setupGenreFilter();
         setupListView();
         setupThemeMenu();
@@ -99,11 +100,7 @@ public class MainController {
     private void filterMovies() {
         String searchTerm = searchField.getText().toLowerCase();
         String selectedGenre = genreCombo.getValue();
-        List<Movie> filtered = allMovies.stream()
-                .filter(m -> m.getTitle().toLowerCase().contains(searchTerm))
-                .filter(m -> selectedGenre.equals("All Genres") || m.getGenre().equals(selectedGenre))
-                .collect(Collectors.toList());
-
+        List<Movie> filtered = movieService.searchMovies(searchTerm, selectedGenre);
         moviesListView.setItems(FXCollections.observableArrayList(filtered));
     }
 
@@ -119,7 +116,7 @@ public class MainController {
                 stage.setScene(new Scene(loader.load()));
 
                 MovieDetailsController controller = loader.getController();
-                controller.setMovie(selected, watchLaterList.contains(selected), watchLaterList);
+                controller.setMovie(selected, DatabaseManager.isInWatchLater(selected.getId()), watchLaterList);
 
                 stage.setTitle(selected.getTitle());
                 stage.show();

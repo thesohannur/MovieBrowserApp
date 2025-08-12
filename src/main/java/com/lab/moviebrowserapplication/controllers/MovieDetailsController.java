@@ -1,13 +1,13 @@
 package com.lab.moviebrowserapplication.controllers;
 
+import com.lab.moviebrowserapplication.models.DatabaseManager;
 import com.lab.moviebrowserapplication.models.Movie;
+import javafx.collections.ObservableList;
 import javafx.fxml.FXML;
 import javafx.scene.control.Button;
 import javafx.scene.control.Label;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
-
-import java.util.List;
 
 public class MovieDetailsController {
     @FXML private Label titleLabel;
@@ -21,9 +21,9 @@ public class MovieDetailsController {
 
     private Movie movie;
     private boolean isInWatchLater;
-    private List<Movie> watchLaterList;
+    private ObservableList<Movie> watchLaterList;
 
-    public void setMovie(Movie movie, boolean isInWatchLater, List<Movie> watchLaterList) {
+    public void setMovie(Movie movie, boolean isInWatchLater, ObservableList<Movie> watchLaterList) {
         this.movie = movie;
         this.isInWatchLater = isInWatchLater;
         this.watchLaterList = watchLaterList;
@@ -32,7 +32,7 @@ public class MovieDetailsController {
         genreLabel.setText("Genre: " + movie.getGenre());
         castLabel.setText("Cast: " + movie.getCastMembers());
         durationLabel.setText("Duration: " + movie.getDuration());
-        ratingLabel.setText("Rating: " + movie.getRating());
+        ratingLabel.setText("Rating: " + String.valueOf(movie.getRating()));
         summaryLabel.setText(movie.getSummary());
 
         try {
@@ -49,8 +49,10 @@ public class MovieDetailsController {
     @FXML
     private void toggleWatchLater() {
         if (isInWatchLater) {
+            DatabaseManager.removeFromWatchLater(movie.getId());
             watchLaterList.remove(movie);
         } else {
+            DatabaseManager.addToWatchLater(movie.getId());
             watchLaterList.add(movie);
         }
         isInWatchLater = !isInWatchLater;

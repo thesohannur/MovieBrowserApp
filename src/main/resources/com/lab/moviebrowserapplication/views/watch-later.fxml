@@ -1,11 +1,9 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
-<?import javafx.scene.control.*?>
-<?import javafx.scene.layout.*?>
+<?import javafx.scene.control.ListView?>
+<?import javafx.scene.layout.VBox?>
 
-<BorderPane xmlns="http://javafx.com/javafx/16" xmlns:fx="http://javafx.com/fxml/1"
-            fx:controller="com.lab.moviebrowserapplication.controllers.WatchLaterController">
-    <center>
-        <ListView fx:id="watchLaterListView"/>
-    </center>
-</BorderPane>
+<VBox xmlns="http://javafx.com/javafx/17" xmlns:fx="http://javafx.com/fxml/1"
+      fx:controller="com.lab.moviebrowserapplication.controllers.WatchLaterController">
+    <ListView fx:id="watchLaterListView" prefHeight="500.0" prefWidth="500.0"/>
+</VBox>

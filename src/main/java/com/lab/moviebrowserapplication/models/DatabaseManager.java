@@ -157,4 +157,62 @@ public class DatabaseManager {
         }
         return movies;
     }
+
+    // New methods for watch_later table
+    public static void addToWatchLater(int movieId) {
+        try (Connection conn = DriverManager.getConnection(DB_URL_WITH_DB, USER, PASS);
+             PreparedStatement stmt = conn.prepareStatement("INSERT INTO watch_later (movie_id) VALUES (?)")) {
+            stmt.setInt(1, movieId);
+            stmt.executeUpdate();
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+    }
+
+    public static void removeFromWatchLater(int movieId) {
+        try (Connection conn = DriverManager.getConnection(DB_URL_WITH_DB, USER, PASS);
+             PreparedStatement stmt = conn.prepareStatement("DELETE FROM watch_later WHERE movie_id = ?")) {
+            stmt.setInt(1, movieId);
+            stmt.executeUpdate();
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+    }
+
+    public static List<Movie> getWatchLaterMovies() {
+        List<Movie> watchLaterMovies = new ArrayList<>();
+        try (Connection conn = DriverManager.getConnection(DB_URL_WITH_DB, USER, PASS);
+             Statement stmt = conn.createStatement();
+             ResultSet rs = conn.createStatement().executeQuery(
+                     "SELECT m.* FROM movies m JOIN watch_later w ON m.id = w.movie_id")) {
+
+            while (rs.next()) {
+                watchLaterMovies.add(new Movie(
+                        rs.getInt("id"),
+                        rs.getString("title"),
+                        rs.getString("genre"),
+                        rs.getString("cast_members"),
+                        rs.getString("duration"),
+                        rs.getDouble("rating"),
+                        rs.getString("summary"),
+                        rs.getString("poster_url")
+                ));
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return watchLaterMovies;
+    }
+
+    public static boolean isInWatchLater(int movieId) {
+        try (Connection conn = DriverManager.getConnection(DB_URL_WITH_DB, USER, PASS);
+             PreparedStatement stmt = conn.prepareStatement("SELECT 1 FROM watch_later WHERE movie_id = ?")) {
+            stmt.setInt(1, movieId);
+            ResultSet rs = stmt.executeQuery();
+            return rs.next();
+        } catch (SQLException e) {
+            e.printStackTrace();
+            return false;
+        }
+    }
 }
